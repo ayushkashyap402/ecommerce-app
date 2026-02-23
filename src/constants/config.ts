@@ -2,25 +2,16 @@ import { Platform } from 'react-native';
 
 // API Configuration
 export const API_CONFIG = {
-  // IMPORTANT: Choose based on your device
-  // 
-  // Option 1: Android Emulator (Recommended for development)
-  // - Use: 10.0.2.2 (emulator's special alias for host machine)
-  // 
-  // Option 2: Physical Device
-  // - Use: Your computer's IP address (e.g., 10.218.59.37)
-  // - Make sure both devices are on same WiFi
-  // - May need to configure Windows Firewall
-  // 
-  // Option 3: iOS Simulator
-  // - Use: localhost
+  // Production API Gateway URL (Railway)
+  BASE_URL: 'https://ecommerce-backend-production-b037.up.railway.app/api',
   
-  BASE_URL: Platform.select({
-    // For Expo Go - use your current WiFi IP
-    android: 'http://10.32.99.37:8080/api',
-    ios: 'http://10.32.99.37:8080/api',
-    default: 'http://10.32.99.37:8080/api',
-  }),
+  // // For local development:
+  // BASE_URL: Platform.select({
+  //   android: 'http://10.0.2.2:8080/api',  // Android Emulator
+  //   ios: 'http://localhost:8080/api',      // iOS Simulator
+  //   default: 'http://10.213.112.37:8080/api', // Physical Device
+  // }),
+  
   TIMEOUT: 30000,
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000,

@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Alert, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +16,7 @@ export default function WishlistScreen() {
   const { user } = useAppSelector(state => state.auth);
   const { items, isLoading } = useAppSelector(state => state.wishlist);
   const theme = useTheme();
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const userId = user?.id || user?._id;
@@ -23,6 +24,20 @@ export default function WishlistScreen() {
       dispatch(fetchWishlist(userId));
     }
   }, [user]);
+
+  const onRefresh = async () => {
+    const userId = user?.id || user?._id;
+    if (!userId) return;
+    
+    setRefreshing(true);
+    try {
+      await dispatch(fetchWishlist(userId)).unwrap();
+    } catch (error) {
+      console.error('Failed to refresh wishlist:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const handleRemoveItem = async (productId: string) => {
     const userId = user?.id || user?._id;
@@ -227,6 +242,14 @@ export default function WishlistScreen() {
           </View>
         )}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+          />
+        }
       />
     </View>
   );

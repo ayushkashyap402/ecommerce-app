@@ -132,8 +132,11 @@ export default function SellerProfileScreen() {
         {/* Seller Info Card */}
         <View style={[
           styles.sellerCard,
-          { backgroundColor: theme.colors.card },
-          theme.getCardStyle()
+          { 
+            backgroundColor: theme.colors.card,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+          }
         ]}>
           {/* Seller Avatar */}
           <View style={[styles.avatarContainer, { backgroundColor: theme.colors.primary }]}>

@@ -33,15 +33,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       onPress={onPress} 
       style={[
         styles.card,
-        { backgroundColor: theme.colors.card },
-        !theme.isDark && {
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.12,
-          shadowRadius: 10,
-          elevation: 5,
-        },
-        theme.isDark && {
+        { 
+          backgroundColor: theme.colors.card,
           borderWidth: 1,
           borderColor: theme.colors.border,
         }
@@ -95,14 +88,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               onPress={handleAddToCart}
               style={[
                 styles.addButton,
-                { backgroundColor: theme.colors.primary },
-                !theme.isDark && {
-                  shadowColor: theme.colors.primary,
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 4,
-                  elevation: 3,
-                }
+                { backgroundColor: theme.colors.primary }
               ]}
               activeOpacity={0.7}
             >

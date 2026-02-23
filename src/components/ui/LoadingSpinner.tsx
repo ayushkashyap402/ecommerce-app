@@ -25,13 +25,10 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
       <View style={styles.overlayContainer}>
         <View style={[
           styles.overlayContent,
-          { backgroundColor: theme.colors.card },
-          theme.isDark ? {} : {
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 8,
-            elevation: 8,
+          { 
+            backgroundColor: theme.colors.card,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
           }
         ]}>
           <ActivityIndicator size={size} color={spinnerColor} />

@@ -68,18 +68,9 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   
   // Helper function to get card style (border in dark, shadow in light)
   const getCardStyle = () => {
-    if (isDark) {
-      return {
-        borderWidth: 1,
-        borderColor: Colors.dark.border,
-      };
-    }
     return {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.06,
-      shadowRadius: 8,
-      elevation: 3,
+      borderWidth: 1,
+      borderColor: isDark ? Colors.dark.border : Colors.light.border,
     };
   };
 

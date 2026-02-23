@@ -71,7 +71,11 @@ export interface Order {
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   estimatedDelivery?: string;
   deliveredAt?: string;
-  cancelledAt?: string;
+  cancellation?: {
+    reason?: string;
+    cancelledAt?: string;
+    cancelledBy?: 'customer' | 'admin';
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -125,8 +129,16 @@ class OrderService {
     }
   }
 
-  async cancelOrder(orderId: string, userId: string): Promise<Order> {
-    return this.updateOrderStatus(orderId, 'cancelled', userId);
+  async cancelOrder(orderId: string, reason: string): Promise<Order> {
+    try {
+      const response = await orderClient.post(
+        `/${orderId}/cancel`,
+        { reason }
+      );
+      return response.data.order;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   }
 }
 

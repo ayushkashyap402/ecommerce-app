@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -16,6 +18,7 @@ import { formatCurrency, formatDate, getOrderStatusColor, getOrderStatusLabel } 
 import { API_CONFIG } from '../../src/constants/config';
 import { authStorage } from '../../src/utils/storage';
 import { useTheme } from '../../src/context/ThemeContext';
+import { orderService } from '../../src/services/orderService';
 
 export default function OrderDetailsScreen() {
   const router = useRouter();
@@ -25,6 +28,19 @@ export default function OrderDetailsScreen() {
 
   const [order, setOrder] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [selectedReason, setSelectedReason] = useState('');
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  const cancelReasons = [
+    'Changed my mind',
+    'Found a better price elsewhere',
+    'Ordered by mistake',
+    'Delivery time too long',
+    'Want to change delivery address',
+    'Want to change payment method',
+    'Other reasons',
+  ];
 
   useEffect(() => {
     loadOrderDetails();
@@ -79,6 +95,39 @@ export default function OrderDetailsScreen() {
     }));
   };
 
+  const handleCancelOrder = async () => {
+    if (!selectedReason) {
+      Alert.alert('Error', 'Please select a cancellation reason');
+      return;
+    }
+
+    Alert.alert(
+      'Cancel Order',
+      'Are you sure you want to cancel this order?',
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes, Cancel',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsCancelling(true);
+              await orderService.cancelOrder(orderId, selectedReason);
+              setShowCancelModal(false);
+              Alert.alert('Success', 'Order cancelled successfully', [
+                { text: 'OK', onPress: () => loadOrderDetails() }
+              ]);
+            } catch (error: any) {
+              Alert.alert('Error', error.message || 'Failed to cancel order');
+            } finally {
+              setIsCancelling(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (isLoading) {
     return <LoadingSpinner fullScreen text="Loading order details..." />;
   }
@@ -119,12 +168,50 @@ export default function OrderDetailsScreen() {
           Placed on {formatDate(order.createdAt)}
         </Text>
 
+        {/* Cancelled Order Info */}
+        {order.status === 'cancelled' && (
+          <View style={[
+            styles.cancelledCard,
+            { 
+              backgroundColor: '#FEE2E2',
+              borderWidth: 1,
+              borderColor: '#FCA5A5',
+            }
+          ]}>
+            <View style={styles.cancelledHeader}>
+              <Ionicons name="close-circle" size={24} color="#DC2626" />
+              <Text style={styles.cancelledTitle}>Order Cancelled</Text>
+            </View>
+            {order.cancellation?.reason && (
+              <Text style={styles.cancelledReason}>
+                Reason: {order.cancellation.reason}
+              </Text>
+            )}
+            {order.cancellation?.cancelledAt && (
+              <Text style={styles.cancelledDate}>
+                Cancelled on {formatDate(order.cancellation.cancelledAt)}
+              </Text>
+            )}
+            {order.payment.status === 'refund_pending' && (
+              <View style={styles.refundInfo}>
+                <Ionicons name="information-circle" size={16} color="#92400E" />
+                <Text style={styles.refundText}>
+                  Refund will be processed within 5-7 business days
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
         {/* Order Status Timeline */}
         {order.status !== 'cancelled' && (
           <View style={[
             styles.timelineCard, 
-            { backgroundColor: theme.colors.surface },
-            theme.getCardStyle()
+            { 
+              backgroundColor: theme.colors.surface,
+              borderWidth: 1,
+              borderColor: theme.colors.border
+            }
           ]}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Order Status</Text>
             <View style={styles.timeline}>
@@ -183,8 +270,11 @@ export default function OrderDetailsScreen() {
         {/* Items */}
         <View style={[
           styles.card, 
-          { backgroundColor: theme.colors.surface },
-          theme.getCardStyle()
+          { 
+            backgroundColor: theme.colors.surface,
+            borderWidth: 1,
+            borderColor: theme.colors.border
+          }
         ]}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Items ({order.items.length})</Text>
           {order.items.map((item: any, index: number) => (
@@ -214,8 +304,11 @@ export default function OrderDetailsScreen() {
         {/* Delivery Address */}
         <View style={[
           styles.card, 
-          { backgroundColor: theme.colors.surface },
-          theme.getCardStyle()
+          { 
+            backgroundColor: theme.colors.surface,
+            borderWidth: 1,
+            borderColor: theme.colors.border
+          }
         ]}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Delivery Address</Text>
           <View style={styles.addressContainer}>
@@ -244,8 +337,11 @@ export default function OrderDetailsScreen() {
         {/* Payment Details */}
         <View style={[
           styles.card, 
-          { backgroundColor: theme.colors.surface },
-          theme.getCardStyle()
+          { 
+            backgroundColor: theme.colors.surface,
+            borderWidth: 1,
+            borderColor: theme.colors.border
+          }
         ]}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Payment Details</Text>
           <View style={styles.paymentRow}>
@@ -300,21 +396,16 @@ export default function OrderDetailsScreen() {
         {/* Price Breakdown */}
         <View style={[
           styles.card, 
-          { backgroundColor: theme.colors.surface },
-          theme.isDark 
-            ? { borderWidth: 1, borderColor: theme.colors.border }
-            : {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.06,
-                shadowRadius: 8,
-                elevation: 3,
-              }
+          { 
+            backgroundColor: theme.colors.surface,
+            borderWidth: 1,
+            borderColor: theme.colors.border
+          }
         ]}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Price Details</Text>
           <View style={styles.priceRow}>
             <Text style={[styles.priceLabel, { color: theme.colors.textSecondary }]}>
-              Subtotal ({order.items.length} items)
+              Subtotal ({order.items.length}) items)
             </Text>
             <Text style={[styles.priceValue, { color: theme.colors.text }]}>
               {formatCurrency(order.pricing?.subtotal || 0)}
@@ -351,33 +442,107 @@ export default function OrderDetailsScreen() {
           </View>
         </View>
 
-        <View style={{ height: 100 }} />
+        {/* Action Buttons */}
+        {order.status !== 'cancelled' && (
+          <View style={styles.actionButtons}>
+            {/* Cancel Button - Show for all non-cancelled orders */}
+            <TouchableOpacity
+              style={[styles.cancelButton, { backgroundColor: '#FEE2E2', borderColor: '#DC2626' }]}
+              onPress={() => setShowCancelModal(true)}
+            >
+              <Ionicons name="close-circle-outline" size={20} color="#DC2626" />
+              <Text style={[styles.cancelButtonText, { color: '#DC2626' }]}>Cancel Order</Text>
+            </TouchableOpacity>
+
+            {/* Return/Refund Button - Show for delivered/shipped orders */}
+            {(order.status === 'delivered' || order.status === 'shipped') && (
+              <TouchableOpacity
+                style={[styles.returnButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.primary }]}
+                onPress={() => router.push(`/order/return-refund?orderId=${orderId}` as any)}
+              >
+                <Ionicons name="return-up-back" size={20} color={theme.colors.primary} />
+                <Text style={[styles.returnButtonText, { color: theme.colors.primary }]}>Request Return & Refund</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
+        <View style={{ height: 20 }} />
       </ScrollView>
 
-      {/* Return/Refund Button - Show for delivered/shipped orders */}
-      {(order.status === 'delivered' || order.status === 'shipped') && (
-        <View style={[
-          styles.actionFooter, 
-          { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border },
-          theme.isDark 
-            ? {}
-            : {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: -2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 8,
-                elevation: 5,
-              }
-        ]}>
-          <TouchableOpacity
-            style={[styles.returnButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.primary }]}
-            onPress={() => router.push(`/order/return-refund?orderId=${orderId}` as any)}
-          >
-            <Ionicons name="return-up-back" size={20} color={theme.colors.primary} />
-            <Text style={[styles.returnButtonText, { color: theme.colors.primary }]}>Request Return & Refund</Text>
-          </TouchableOpacity>
+      {/* Cancel Order Modal */}
+      <Modal
+        visible={showCancelModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowCancelModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: theme.colors.surface }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Cancel Order</Text>
+              <TouchableOpacity onPress={() => setShowCancelModal(false)}>
+                <Ionicons name="close" size={24} color={theme.colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={[styles.modalSubtitle, { color: theme.colors.textSecondary }]}>
+              Please select a reason for cancellation:
+            </Text>
+
+            <ScrollView style={styles.reasonsList} showsVerticalScrollIndicator={false}>
+              {cancelReasons.map((reason) => (
+                <TouchableOpacity
+                  key={reason}
+                  style={[
+                    styles.reasonItem,
+                    { 
+                      backgroundColor: theme.colors.backgroundSecondary,
+                      borderColor: selectedReason === reason ? theme.colors.primary : theme.colors.border,
+                    }
+                  ]}
+                  onPress={() => setSelectedReason(reason)}
+                >
+                  <View style={[
+                    styles.radioButton,
+                    { borderColor: theme.colors.border },
+                    selectedReason === reason && { 
+                      backgroundColor: theme.colors.primary,
+                      borderColor: theme.colors.primary,
+                    }
+                  ]}>
+                    {selectedReason === reason && (
+                      <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+                    )}
+                  </View>
+                  <Text style={[styles.reasonText, { color: theme.colors.text }]}>{reason}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSecondary, { borderColor: theme.colors.border }]}
+                onPress={() => setShowCancelModal(false)}
+                disabled={isCancelling}
+              >
+                <Text style={[styles.modalButtonTextSecondary, { color: theme.colors.text }]}>Go Back</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonPrimary, { backgroundColor: '#DC2626' }]}
+                onPress={handleCancelOrder}
+                disabled={isCancelling || !selectedReason}
+              >
+                {isCancelling ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.modalButtonTextPrimary}>Cancel Order</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      )}
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -652,16 +817,25 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#16A085',
   },
-  actionFooter: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFFFFF',
+  actionButtons: {
     padding: 20,
-    paddingBottom: 30,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    gap: 12,
+  },
+  cancelButton: {
+    backgroundColor: '#FEE2E2',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#DC2626',
+    gap: 8,
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#DC2626',
   },
   returnButton: {
     backgroundColor: '#FFFFFF',
@@ -678,5 +852,136 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#16A085',
+  },
+  cancelledCard: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+  },
+  cancelledHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  cancelledTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#DC2626',
+  },
+  cancelledReason: {
+    fontSize: 15,
+    color: '#991B1B',
+    marginBottom: 8,
+    fontWeight: '600',
+  },
+  cancelledDate: {
+    fontSize: 14,
+    color: '#991B1B',
+    marginBottom: 12,
+  },
+  refundInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    padding: 12,
+    borderRadius: 12,
+    gap: 8,
+  },
+  refundText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#92400E',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  modalSubtitle: {
+    fontSize: 15,
+    color: '#6B7280',
+    marginBottom: 20,
+  },
+  reasonsList: {
+    maxHeight: 300,
+    marginBottom: 20,
+  },
+  reasonItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F9FAFB',
+  },
+  radioButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  reasonText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonSecondary: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+  },
+  modalButtonPrimary: {
+    backgroundColor: '#DC2626',
+  },
+  modalButtonTextSecondary: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  modalButtonTextPrimary: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
