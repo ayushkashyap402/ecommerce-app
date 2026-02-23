@@ -208,7 +208,7 @@ export default function OrderDetailsScreen() {
           <View style={[
             styles.timelineCard, 
             { 
-              backgroundColor: theme.colors.surface,
+              backgroundColor: theme.colors.card,
               borderWidth: 1,
               borderColor: theme.colors.border
             }
@@ -271,7 +271,7 @@ export default function OrderDetailsScreen() {
         <View style={[
           styles.card, 
           { 
-            backgroundColor: theme.colors.surface,
+            backgroundColor: theme.colors.card,
             borderWidth: 1,
             borderColor: theme.colors.border
           }
@@ -305,7 +305,7 @@ export default function OrderDetailsScreen() {
         <View style={[
           styles.card, 
           { 
-            backgroundColor: theme.colors.surface,
+            backgroundColor: theme.colors.card,
             borderWidth: 1,
             borderColor: theme.colors.border
           }
@@ -338,7 +338,7 @@ export default function OrderDetailsScreen() {
         <View style={[
           styles.card, 
           { 
-            backgroundColor: theme.colors.surface,
+            backgroundColor: theme.colors.card,
             borderWidth: 1,
             borderColor: theme.colors.border
           }
@@ -397,7 +397,7 @@ export default function OrderDetailsScreen() {
         <View style={[
           styles.card, 
           { 
-            backgroundColor: theme.colors.surface,
+            backgroundColor: theme.colors.card,
             borderWidth: 1,
             borderColor: theme.colors.border
           }
@@ -457,7 +457,7 @@ export default function OrderDetailsScreen() {
             {/* Return/Refund Button - Show for delivered/shipped orders */}
             {(order.status === 'delivered' || order.status === 'shipped') && (
               <TouchableOpacity
-                style={[styles.returnButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.primary }]}
+                style={[styles.returnButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.primary }]}
                 onPress={() => router.push(`/order/return-refund?orderId=${orderId}` as any)}
               >
                 <Ionicons name="return-up-back" size={20} color={theme.colors.primary} />
@@ -478,7 +478,7 @@ export default function OrderDetailsScreen() {
         onRequestClose={() => setShowCancelModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: theme.colors.surface }]}>
+          <View style={[styles.modalContent, { backgroundColor: theme.colors.card }]}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Cancel Order</Text>
               <TouchableOpacity onPress={() => setShowCancelModal(false)}>
