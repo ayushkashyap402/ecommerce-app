@@ -1,20 +1,19 @@
 import { Platform } from 'react-native';
 
-// API Configuration
+// API Configuration from Environment Variables
 export const API_CONFIG = {
-  // Production API Gateway URL (Railway)
-  BASE_URL: 'https://ecommerce-backend-production-b037.up.railway.app/api',
+  BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL || Platform.select({
+    // Fallback for Android Emulator
+    android: 'http://10.87.113.37:8080/api',
+    // Fallback for iOS Simulator
+    ios: 'http://localhost:8080/api',
+    // Fallback for Physical Device
+    default: 'http://10.87.113.37:8080/api',
+  }),
   
-  // // For local development:
-  // BASE_URL: Platform.select({
-  //   android: 'http://10.0.2.2:8080/api',  // Android Emulator
-  //   ios: 'http://localhost:8080/api',      // iOS Simulator
-  //   default: 'http://10.213.112.37:8080/api', // Physical Device
-  // }),
-  
-  TIMEOUT: 30000,
-  RETRY_ATTEMPTS: 3,
-  RETRY_DELAY: 1000,
+  TIMEOUT: parseInt(process.env.EXPO_PUBLIC_API_TIMEOUT || '30000', 10),
+  RETRY_ATTEMPTS: parseInt(process.env.EXPO_PUBLIC_API_RETRY_ATTEMPTS || '3', 10),
+  RETRY_DELAY: parseInt(process.env.EXPO_PUBLIC_API_RETRY_DELAY || '1000', 10),
 };
 
 // Storage Keys

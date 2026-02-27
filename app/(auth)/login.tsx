@@ -21,13 +21,10 @@ export default function LoginScreen() {
 
     try {
       setIsLoading(true);
-      console.log('Attempting login with:', { email });
       const result = await dispatch(login({ email, password })).unwrap();
-      console.log('Login successful:', result);
       router.replace('/(tabs)');
     } catch (error: any) {
-      console.error('Login error:', error);
-      Alert.alert('Login Failed', error || 'Invalid credentials');
+      Alert.alert('Login Failed', error || 'Invalid credentials. Please check your email and password.');
     } finally {
       setIsLoading(false);
     }

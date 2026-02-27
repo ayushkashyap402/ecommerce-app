@@ -1,8 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, Dimensions, FlatList, TouchableOpacity, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
+const ONBOARDING_COMPLETED_KEY = '@onboarding_completed';
 
 const slides = [
   {
@@ -65,11 +67,15 @@ export default function OnboardingScreen() {
     }
   };
 
-  const handleGetStarted = () => {
+  const handleGetStarted = async () => {
+    // Mark onboarding as completed
+    await AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true');
     router.replace('/(auth)/login');
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
+    // Mark onboarding as completed even when skipped
+    await AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true');
     router.replace('/(auth)/login');
   };
 

@@ -34,7 +34,6 @@ const createApiClient = (baseURL: string): AxiosInstance => {
       if (error.response?.status === 401) {
         // Token expired or invalid
         await authStorage.clearAuth();
-        // You can dispatch a logout action here if needed
       }
       return Promise.reject(error);
     }

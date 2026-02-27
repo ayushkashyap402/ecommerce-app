@@ -25,7 +25,7 @@ const THEME_STORAGE_KEY = '@app_theme_mode';
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const systemColorScheme = useColorScheme();
-  const [themeMode, setThemeModeState] = useState<ThemeMode>('system');
+  const [themeMode, setThemeModeState] = useState<ThemeMode>('light'); // Default to light
   const [isLoading, setIsLoading] = useState(true);
 
   // Load saved theme preference on mount
@@ -38,9 +38,13 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       const savedMode = await AsyncStorage.getItem(THEME_STORAGE_KEY);
       if (savedMode && (savedMode === 'light' || savedMode === 'dark' || savedMode === 'system')) {
         setThemeModeState(savedMode as ThemeMode);
+      } else {
+        // If no saved preference, default to light mode
+        setThemeModeState('light');
       }
     } catch (error) {
       console.error('Failed to load theme preference:', error);
+      setThemeModeState('light'); // Fallback to light
     } finally {
       setIsLoading(false);
     }

@@ -44,12 +44,22 @@ export interface Product {
   sizes?: string[];
   colors?: string[];
   createdBy?: string;
+  createdByName?: string;
+  createdByRole?: string;
+  sku?: string;
   createdAt?: string;
   updatedAt?: string;
   thumbnailUrl?: string;
   images?: string[];
   averageRating?: number;
   totalReviews?: number;
+  reviews?: Array<{
+    userId: string;
+    userName: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+  }>;
 }
 
 export interface ProductsState {
